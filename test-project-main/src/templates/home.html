@@ -1,0 +1,98 @@
+<div class="row">
+    <div class="col-auto">
+        <select class="form-select" id="games" name ="game_id"onchange="updateList()">
+            <option value="0" {if !$game_id}selected{/if}>{$LANG.all_games}</option>
+            {foreach $games as $game_id => $game_name}
+                <option value="{$game_id}" {if $game_id == $selected_game}selected{/if}>{$game_name}</option>
+            {/foreach}
+        </select>
+    </div>
+
+</div>
+
+<div class="table">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>{$LANG.prd_name}</th>
+                <th>{$LANG.stock}</th>
+                <th>{$LANG.price}</th>
+                <th>{$LANG.quantity}</th>
+            </tr>
+        </thead>
+        <tbody id="productList">
+            {foreach $products as $product}
+                <tr>
+                    <td>{$product.name}</td>
+                    <td>{$product.stock}</td>
+                    <td>{$product.price}</td>
+                    <td>
+                        <input name="quantity" type="number" class="form-control" value="1" min="{$product.min_order}"
+                            max="{$product.max_order}" id="quantity_{$product.id}">
+                    </td>
+                </tr>
+            {/foreach}
+        </tbody>
+    </table>
+    <button type="button" class="btn btn-primary" onclick="addProducts()">{$LANG.buy}</button>
+</div>
+
+<script>
+function updateList()
+{
+    var selectedGame = document.getElementById('games').value;
+    var productList = document.getElementById('product_list');
+
+    if(selectedGame != 0){
+        productList.style.display='block';
+    }
+    else{
+        productList.style.display='none';
+    }
+    this.form.submit();
+
+fetch('https://www.turkpin.net/api.php game_id= ${selectedGame}').then(response=> response.json())
+.then(data => {updateList(data.products);
+    document.getElementById('productList').style.display= 'block';
+})
+.catch(error => console.error('hata',error));
+}
+
+function updateProduct(products)
+{
+    var tbody = document.getElementById('productTable');
+    tbody.innerHTML = ' ';
+
+    products.forEach(product => {
+        var row = document.createElement('tr');
+        var nameCell = document.createElement('td');
+        nameCell.textContent = product.name;
+        row.appendChild(nameCell);
+
+        var stockCell = document.createElement('td');
+        stockCell.textContent = product.stockCell;
+        row.appendChild(stockCell);
+
+        var priceCell = document.createElement('td');
+        priceCell.textContent = product.priceCell;
+        row.appendChild(priceCell);
+
+        var quantityCell = document.createElement('td');
+        var input = document.createElement('input');
+        input.type = 'number';
+        input.classList.add('form control');
+        input.value = 1;
+        input.min = product.min_order;
+        input.max = product.max_order;
+        input.id = 'quantity_${product.id}';
+        quantityCell.appendChild(input);
+        row.appendChild(quantityCell);
+        tbody.appendChild(row);
+        
+    });
+}
+window.onload = function()
+{
+    document.getElementById('productList').style.display = 'none';
+}
+</script>
